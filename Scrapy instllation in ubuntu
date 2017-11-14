@@ -1,0 +1,139 @@
+#Ubuntu scrapy instllation
+sudo apt-get install python-dev python-pip libxml2-dev libxslt1-dev zlib1g-dev libffi-dev libssl-dev
+
+pip install scrapy
+
+#Creating a project
+scrapy startproject tutorial
+
+#Our first Spider
+import scrapy
+
+
+class QuotesSpider(scrapy.Spider):
+    name = "quotes"
+
+    def start_requests(self):
+        urls = [
+            'http://quotes.toscrape.com/page/1/',
+            'http://quotes.toscrape.com/page/2/',
+        ]
+        for url in urls:
+            yield scrapy.Request(url=url, callback=self.parse)
+
+    def parse(self, response):
+        page = response.url.split("/")[-2]
+        filename = 'quotes-%s.html' % page
+        with open(filename, 'wb') as f:
+            f.write(response.body)
+        self.log('Saved file %s' % filename)
+
+#How to run our spider
+scrapy crawl quotes
+
+#Extracting data
+scrapy shell 'http://quotes.toscrape.com/page/1/'
+
+#You will see something like:
+
+[ ... Scrapy log here ... ]
+2016-09-19 12:09:27 [scrapy.core.engine] DEBUG: Crawled (200) <GET http://quotes.toscrape.com/page/1/> (referer: None)
+[s] Available Scrapy objects:
+[s]   scrapy     scrapy module (contains scrapy.Request, scrapy.Selector, etc)
+[s]   crawler    <scrapy.crawler.Crawler object at 0x7fa91d888c90>
+[s]   item       {}
+[s]   request    <GET http://quotes.toscrape.com/page/1/>
+[s]   response   <200 http://quotes.toscrape.com/page/1/>
+[s]   settings   <scrapy.settings.Settings object at 0x7fa91d888c10>
+[s]   spider     <DefaultSpider 'default' at 0x7fa91c8af990>
+[s] Useful shortcuts:
+[s]   shelp()           Shell help (print this help)
+[s]   fetch(req_or_url) Fetch request (or URL) and update local objects
+[s]   view(response)    View response in a browser
+>>>
+>>> response.css('title')
+[<Selector xpath='descendant-or-self::title' data='<title>Quotes to Scrape</title>'>]
+
+>>> response.css('title::text').extract()
+['Quotes to Scrape']
+
+>>> response.css('title').extract()
+['<title>Quotes to Scrape</title>']
+
+>>> response.css('title::text').extract_first()
+'Quotes to Scrape'
+
+>>> response.css('title::text')[0].extract()
+'Quotes to Scrape'
+
+>>> response.css('title::text').re(r'Quotes.*')
+['Quotes to Scrape']
+>>> response.css('title::text').re(r'Q\w+')
+['Quotes']
+>>> response.css('title::text').re(r'(\w+) to (\w+)')
+['Quotes', 'Scrape']
+
+
+>>> response.xpath('//title')
+[<Selector xpath='//title' data='<title>Quotes to Scrape</title>'>]
+>>> response.xpath('//title/text()').extract_first()
+'Quotes to Scrape'
+
+>>> response.css("div.quote")
+
+>>> quote = response.css("div.quote")[0]
+
+>>> title = quote.css("span.text::text").extract_first()
+>>> title
+'“The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.”'
+>>> author = quote.css("small.author::text").extract_first()
+>>> author
+'Albert Einstein'
+
+>>> tags = quote.css("div.tags a.tag::text").extract()
+>>> tags
+['change', 'deep-thoughts', 'thinking', 'world']
+
+
+>>> for quote in response.css("div.quote"):
+...     text = quote.css("span.text::text").extract_first()
+...     author = quote.css("small.author::text").extract_first()
+...     tags = quote.css("div.tags a.tag::text").extract()
+...     print(dict(text=text, author=author, tags=tags))
+{'tags': ['change', 'deep-thoughts', 'thinking', 'world'], 'author': 'Albert Einstein', 'text': '“The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.”'}
+{'tags': ['abilities', 'choices'], 'author': 'J.K. Rowling', 'text': '“It is our choices, Harry, that show what we truly are, far more than our abilities.”'}
+    ... a few more of these, omitted for brevity
+>>>
+
+
+
+
+#Extracting data in our spider#
+
+import scrapy
+
+
+class QuotesSpider(scrapy.Spider):
+    name = "quotes"
+    start_urls = [
+        'http://quotes.toscrape.com/page/1/',
+        'http://quotes.toscrape.com/page/2/',
+    ]
+
+    def parse(self, response):
+        for quote in response.css('div.quote'):
+            yield {
+                'text': quote.css('span.text::text').extract_first(),
+                'author': quote.css('small.author::text').extract_first(),
+                'tags': quote.css('div.tags a.tag::text').extract(),
+            }
+            
+#Storing the scraped data#
+scrapy crawl quotes -o quotes.json
+
+#Following links#
+We can try extracting it in the shell:
+
+>>> response.css('li.next a').extract_first()
+'<a href="/page/2/">Next <span aria-hidden="true">→</span></a>'
+
