@@ -1,0 +1,203 @@
+# Default structure of Scrapy projects
+
+scrapy.cfg
+myproject/
+    __init__.py
+    items.py
+    pipelines.py
+    settings.py
+    spiders/
+        __init__.py
+        spider1.py
+        spider2.py
+        ...
+        
+#Using the scrapy tool#
+Scrapy X.Y - no active project
+
+Usage:
+  scrapy <command> [options] [args]
+
+Available commands:
+  crawl         Run a spider
+  fetch         Fetch a URL using the Scrapy downloader
+[...]
+
+Scrapy X.Y - project: myproject
+
+Usage:
+  scrapy <command> [options] [args]
+
+[...]
+
+#Creating projects#
+scrapy startproject myproject [project_dir]
+
+Next, you go inside the new project directory:
+cd project_dir
+
+#Controlling projects#
+to create a new spider:
+
+scrapy genspider mydomain mydomain.com
+
+#Global Command#
+
+    startproject
+    genspider
+    settings
+    runspider
+    shell
+    fetch
+    view
+    version
+
+#Project-only command#
+
+    crawl
+    check
+    list
+    edit
+    parse
+    bench
+
+#startproject#
+Syntax: scrapy startproject <project_name> [project_dir]
+Usage example:
+
+$ scrapy startproject myproject
+
+#genspider#
+Syntax: scrapy genspider [-t template] <name> <domain>
+
+Usage example:
+$ scrapy genspider -l
+Available templates:
+  basic
+  crawl
+  csvfeed
+  xmlfeed
+
+$ scrapy genspider example example.com
+Created spider 'example' using template 'basic'
+
+$ scrapy genspider -t crawl scrapyorg scrapy.org
+Created spider 'scrapyorg' using template 'crawl'
+
+#Crawl#
+Syntax: scrapy crawl <spider>
+
+Usage examples:
+$ scrapy crawl myspider
+[ ... myspider starts crawling ... ]
+
+#Check#
+Syntax: scrapy check [-l] <spider>
+
+Usage examples:
+$ scrapy check -l
+first_spider
+  * parse
+  * parse_item
+second_spider
+  * parse
+  * parse_item
+
+$ scrapy check
+[FAILED] first_spider:parse_item
+>>> 'RetailPricex' field is missing
+
+[FAILED] first_spider:parse
+>>> Returned 92 requests, expected 0..4
+
+
+#list#
+Syntax: scrapy list
+
+Usage example:
+$ scrapy list
+spider1
+spider2
+
+#edit#
+Syntax: scrapy edit <spider>
+
+Usage example:
+$ scrapy edit spider1
+
+#fetch#
+Syntax: scrapy fetch <url>
+
+Usage examples:
+$ scrapy fetch --nolog http://www.example.com/some/page.html
+[ ... html content here ... ]
+
+$ scrapy fetch --nolog --headers http://www.example.com/
+{'Accept-Ranges': ['bytes'],
+ 'Age': ['1263   '],
+ 'Connection': ['close     '],
+ 'Content-Length': ['596'],
+ 'Content-Type': ['text/html; charset=UTF-8'],
+ 'Date': ['Wed, 18 Aug 2010 23:59:46 GMT'],
+ 'Etag': ['"573c1-254-48c9c87349680"'],
+ 'Last-Modified': ['Fri, 30 Jul 2010 15:30:18 GMT'],
+ 'Server': ['Apache/2.2.3 (CentOS)']}
+
+#View#
+Syntax: scrapy view <url>
+
+Usage example:
+$ scrapy view http://www.example.com/some/page.html
+[ ... browser starts ... ]
+
+#Shell#
+Syntax: scrapy shell [url]
+
+Usage example:
+$ scrapy shell http://www.example.com/some/page.html
+[ ... scrapy shell starts ... ]
+
+$ scrapy shell --nolog http://www.example.com/ -c '(response.status, response.url)'
+(200, 'http://www.example.com/')
+
+# shell follows HTTP redirects by default
+$ scrapy shell --nolog http://httpbin.org/redirect-to?url=http%3A%2F%2Fexample.com%2F -c '(response.status, response.url)'
+(200, 'http://example.com/')
+
+# you can disable this with --no-redirect
+# (only for the URL passed as command line argument)
+$ scrapy shell --no-redirect --nolog http://httpbin.org/redirect-to?url=http%3A%2F%2Fexample.com%2F -c '(response.status, response.url)'
+(302, 'http://httpbin.org/redirect-to?url=http%3A%2F%2Fexample.com%2F')
+
+#Parse#
+Syntax: scrapy parse <url> [options]
+
+Usage example:
+$ scrapy parse http://www.example.com/ -c parse_item
+[ ... scrapy log lines crawling example.com spider ... ]
+
+#Settings#
+Syntax: scrapy settings [options]
+
+Example usage:
+$ scrapy settings --get BOT_NAME
+scrapybot
+$ scrapy settings --get DOWNLOAD_DELAY
+0
+
+#runspider#
+Syntax: scrapy runspider <spider_file.py>
+
+Example usage:
+$ scrapy runspider myspider.py
+[ ... spider starts crawling ... ]
+
+
+#version#
+Syntax: scrapy version [-v]
+
+#bench#
+Syntax: scrapy bench
+
+
+
